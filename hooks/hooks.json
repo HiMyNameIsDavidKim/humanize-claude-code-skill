@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "for p in python3 python py; do \"$p\" -c '' >/dev/null 2>&1 && exec \"$p\" \"${CLAUDE_PLUGIN_ROOT}/skills/humanize-claude-code/scripts/humanize.py\" hook \"${CLAUDE_PLUGIN_DATA}\"; done"
+          }
+        ]
+      }
+    ]
+  }
+}

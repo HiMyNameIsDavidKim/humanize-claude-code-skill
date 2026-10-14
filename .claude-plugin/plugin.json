@@ -1,0 +1,14 @@
+{
+  "name": "humanize-claude-code",
+  "version": "0.1.0",
+  "description": "지난 Claude Code 세션 응답에서 한국어 AI 문체를 찾아 가이드로 만들고, 세션을 시작할 때마다 주입한다. 판정 기준은 im-not-ai.",
+  "license": "MIT",
+  "keywords": ["korean", "writing-style", "ai-tell", "humanize", "claude-code", "hooks"],
+  "author": {
+    "name": "HiMyNameIsDavidKim",
+    "email": "rkfka1401@gmail.com",
+    "url": "https://github.com/HiMyNameIsDavidKim"
+  },
+  "homepage": "https://github.com/HiMyNameIsDavidKim/humanize-claude-code-skill",
+  "repository": "https://github.com/HiMyNameIsDavidKim/humanize-claude-code-skill"
+}
