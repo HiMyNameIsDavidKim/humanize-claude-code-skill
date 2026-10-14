@@ -29,7 +29,10 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/humanize-claude-code/scripts/humanize.py" 
 
 - `DATA/references/diagnosis-rules.md`: 85개 패턴의 정의와 탐지 신호
 - `DATA/references/quick-rules.md`: 패턴별 처방
+- `DATA/references/rewriting-playbook.md`: 윤문 대원칙과 카테고리별 before→after 예시
 - `~/.claude/CLAUDE.md`: 유저의 응답 서식 규칙. 파일이 없으면 건너뛴다
+
+`DATA/references/ai-tell-taxonomy.md`(분류 체계 원본, 약 3만 토큰)는 여기서 통째로 읽지 않는다. 5단계에서 문구를 쓸 패턴의 절만 읽는다.
 
 다음 패턴은 판정하지 않는다.
 
@@ -54,13 +57,26 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/humanize-claude-code/scripts/humanize.py" 
 {
   "sessions": { "<세션 ID>": ["C-8", "D-8"], "<세션 ID>": [] },
   "items": {
-    "C-8": { "rule": "\"A가 아니라 B\" 대구를 응답마다 반복", "instead": "한 번만 쓰고 나머지는 바로 단언한다" }
+    "C-8": {
+      "rule": "\"A가 아니라 B\" 대구를 응답마다 반복",
+      "instead": "한 번만 쓰고 나머지는 바로 단언한다",
+      "example": "\"원인은 캐시가 아니라 락입니다\" → \"락이 원인입니다\""
+    }
   }
 }
 ```
 
 - `sessions`: 2단계 목록에 있는 **모든** 세션을 넣는다. 지배 패턴이 없으면 빈 배열이다.
-- `items`: 이번에 고른 패턴 중 `DATA/state.json` 의 `items` 에 아직 없는 것만 쓴다. `rule` 은 응답에서 나타나는 형태 1줄, `instead` 는 대신 쓸 형태 1줄이다. `instead` 는 `quick-rules.md` 처방을 따르고, 처방이 없으면 정의에서 만든다. 금지만 적지 말고 무엇으로 쓸지 적는다.
+- `items`: 아래 패턴의 문구를 쓴다. 여기 쓴 문구는 `state.json` 의 기존 문구를 덮어쓴다.
+  - 이번에 고른 패턴 중 `DATA/state.json` 의 `items` 에 아직 없는 것
+  - 이번에 고른 패턴이나 `state.json` 의 `guide` 에 있는 패턴 중 `items` 에 `example` 이 없는 것(기준 보강 전에 쓴 문구)
+
+문구는 이 순서로 쓴다.
+
+1. `ai-tell-taxonomy.md` 에서 `### <ID>.` 로 시작하는 절을 찾아 다음 `##`·`###` 머리 전까지 끝까지 읽는다. 처방, 허가 조건(보존해야 하는 경우), 주입 금지 경고를 확인한다.
+2. `rule` 은 응답에서 나타나는 형태 1줄로 쓴다.
+3. `instead` 는 대신 쓸 형태 1줄로 쓴다. taxonomy 절의 처방을 따르고 금지만 적지 말고 무엇으로 쓸지 적는다. 그 형태가 다른 AI 티를 새로 만들면 안 된다(대구·"결국"·"~하는 이유다"·당위 종결·연결어미 뒤 쉼표 등 taxonomy 가 주입 금지로 적은 것). playbook 대원칙의 빼기 전용을 따른다.
+4. `example` 은 `"원문" → "고친 문장"` 1줄이다. 원문은 이번 회차 세션 응답에서 그 패턴이 나온 실제 문장을 짧게 옮기고, 고친 문장은 `instead` 대로 고친 것이다. 이번 회차 세션에 그 패턴이 없으면 taxonomy·playbook 예문으로 만든다. 지시만으로는 구조 패턴이 바뀌지 않아서 예시를 붙인다(playbook C-8·D-8 실측).
 
 ## 6. 반영
 
@@ -71,7 +87,7 @@ python3 "${CLAUDE_PLUGIN_ROOT}/skills/humanize-claude-code/scripts/humanize.py" 
 - 뺀 항목이 이번 회차에 2세션 이상 다시 나오면 가이드로 되돌린다.
 - 분석한 세션 ID 와 현재 세션 ID 를 기록하고 `DATA/work/` 를 지운다.
 
-판정하지 않은 세션이 있거나 새 패턴의 문구가 없으면 `HumanizeError` 로 멈춘다. 그때는 `run.json` 을 채우고 다시 실행한다.
+판정하지 않은 세션이 있거나, 새 패턴의 문구가 없거나, 가이드 항목에 `example` 이 없으면 `HumanizeError` 로 멈춘다. 그때는 `run.json` 을 채우고 다시 실행한다.
 
 ## 7. 보고
 

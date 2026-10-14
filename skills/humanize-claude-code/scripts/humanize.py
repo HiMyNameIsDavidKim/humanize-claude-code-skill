@@ -39,7 +39,7 @@ DEFAULT_ALERT_DAYS = 7
 DEFAULT_REFERENCE_BASE = (
     "https://raw.githubusercontent.com/epoko77-ai/im-not-ai/main/skills/humanize-korean/references/"
 )
-DEFAULT_REFERENCE_FILES = ("diagnosis-rules.md", "quick-rules.md")
+DEFAULT_REFERENCE_FILES = ("diagnosis-rules.md", "quick-rules.md", "ai-tell-taxonomy.md", "rewriting-playbook.md")
 DEFAULT_SKILL_REPO = "https://github.com/HiMyNameIsDavidKim/humanize-claude-code-skill"
 
 BUNDLED_REFERENCES = Path(__file__).resolve().parent.parent / "references"
@@ -58,10 +58,11 @@ CODE_FENCE = re.compile(r"```.*?```", re.S)
 
 
 class ItemText(TypedDict):
-    """가이드 항목 한 줄을 이루는 문구."""
+    """가이드 항목 하나를 이루는 문구. example 은 "원문" → "고친 문장" 한 줄이다."""
 
     rule: str
     instead: str
+    example: str
 
 
 class EvictedEntry(TypedDict):
@@ -330,6 +331,7 @@ def render_guide(state: State, today: str) -> str:
     for pattern_id in state["guide"]:
         item = state["items"][pattern_id]
         lines.append(f"- **{pattern_id}** {item['rule']} → 대신: {item['instead']}")
+        lines.append(f"  예: {item['example']}")
     return "\n".join(lines) + "\n"
 
 
@@ -362,7 +364,7 @@ def run_commit() -> None:
     """work/run.json 판정 결과를 누적하고 가이드를 다시 만든다.
 
     Raises:
-        HumanizeError: 판정하지 않은 세션이 있거나, 문구가 없는 패턴이 있을 때.
+        HumanizeError: 판정하지 않은 세션이 있거나, 문구가 없는 패턴이나 예시가 없는 가이드 항목이 있을 때.
     """
     state = load_state()
     manifest: Manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
@@ -378,10 +380,11 @@ def run_commit() -> None:
             this_run[pattern_id] = this_run.get(pattern_id, 0) + 1
     for pattern_id, n in this_run.items():
         state["counts"][pattern_id] = state["counts"].get(pattern_id, 0) + n
-        if pattern_id not in state["items"]:
-            if pattern_id not in run["items"]:
-                raise HumanizeError(f"문구가 없는 새 패턴: {pattern_id}")
-            state["items"][pattern_id] = run["items"][pattern_id]
+    # run.json 문구가 기존 문구를 덮어쓴다. 기준이 바뀐 뒤 옛 항목을 다시 쓰는 경로다
+    state["items"].update(run["items"])
+    no_text = sorted(i for i in this_run if i not in state["items"])
+    if no_text:
+        raise HumanizeError(f"문구가 없는 새 패턴: {no_text}")
 
     today = datetime.date.today().isoformat()
     for pattern_id, entry in state["evicted"].items():
@@ -392,6 +395,9 @@ def run_commit() -> None:
     ranked = sorted(state["counts"], key=lambda i: (-state["counts"][i], i))
     previous = state["guide"]
     state["guide"] = (reinserted + [i for i in ranked if i not in reinserted])[:DEFAULT_GUIDE_LIMIT]
+    no_example = [i for i in state["guide"] if "example" not in state["items"][i]]
+    if no_example:
+        raise HumanizeError(f"예시가 없는 가이드 항목: {no_example}")
     newly_evicted = [i for i in previous if i not in state["guide"]]
     for pattern_id in newly_evicted:
         state["evicted"][pattern_id] = EvictedEntry(
@@ -415,7 +421,8 @@ def run_commit() -> None:
 
 
 if __name__ == "__main__":
-    # Windows 는 파이프 입출력에 시스템 인코딩(cp949 등)을 써서, 훅 입력의 한글 경로와 모델이 읽는 출력이 깨진다
+    # Windows 는 파이프 입출력에 시스템 인코딩(cp949 등)을 써서, 훅 입력의 한글 경로와 모델이 읽는 출력·에러 메시지가 깨진다
     sys.stdin.reconfigure(encoding="utf-8")
     sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     {"hook": run_hook, "refs": run_refs, "collect": run_collect, "commit": run_commit}[sys.argv[1]]()

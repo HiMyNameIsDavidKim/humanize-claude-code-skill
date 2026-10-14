@@ -39,8 +39,9 @@ AI 문체 판정 기준은 [im-not-ai](https://github.com/epoko77-ai/im-not-ai)�
 1. im-not-ai 원본 기준 파일이 바뀌었는지 확인하고, 바뀌었으면 받아 둡니다.
 2. 프로젝트마다 아직 분석하지 않은 최신 세션을 최대 10개씩 고르고, Claude 응답 텍스트만 뽑습니다. 도구 호출·도구 결과·thinking·코드 블록은 뺍니다.
 3. 세션마다 응답을 지배하는 AI 문체 패턴을 0~6개 고릅니다.
-4. 패턴별로 나온 세션 수를 누적하고, 상위 15개로 가이드를 다시 씁니다.
-5. 가이드에서 밀려난 패턴은 `evicted.md` 에 기록합니다. 다음 분석에서 그 패턴이 2세션 이상 다시 나오면 가이드로 되돌립니다.
+4. 새로 나온 패턴은 im-not-ai 분류 체계의 해당 절을 읽고 가이드 문구를 씁니다. 항목마다 세션 응답의 실제 문장을 고친 예시를 붙입니다.
+5. 패턴별로 나온 세션 수를 누적하고, 상위 15개로 가이드를 다시 씁니다.
+6. 가이드에서 밀려난 패턴은 `evicted.md` 에 기록합니다. 다음 분석에서 그 패턴이 2세션 이상 다시 나오면 가이드로 되돌립니다.
 
 분석한 세션 ID 는 기록해 두고 다시 분석하지 않습니다. 분석을 돌린 세션도 함께 기록해서 다음 분석 대상에서 빠집니다.
 
@@ -71,7 +72,7 @@ humanize-claude-code-skill/
 
 ## 출처
 
-- AI 문체 분류 체계와 처방: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai) (MIT). `references/` 의 `diagnosis-rules.md`·`quick-rules.md` 는 그 저장소 파일의 사본이고, 라이선스는 `references/LICENSE-im-not-ai` 에 있습니다.
+- AI 문체 분류 체계와 처방: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai) (MIT). `references/` 의 `diagnosis-rules.md`·`quick-rules.md`·`ai-tell-taxonomy.md`·`rewriting-playbook.md` 는 그 저장소 파일의 사본이고, 라이선스는 `references/LICENSE-im-not-ai` 에 있습니다.
 
 ## 라이선스
 
