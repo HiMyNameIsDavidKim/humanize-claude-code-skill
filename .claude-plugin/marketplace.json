@@ -11,7 +11,7 @@
       "name": "humanize-claude-code",
       "source": "./",
       "description": "지난 Claude Code 세션 응답에서 한국어 AI 문체를 찾아 가이드로 만들고, 세션을 시작할 때마다 주입한다. 판정 기준은 im-not-ai.",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "author": { "name": "HiMyNameIsDavidKim" },
       "category": "productivity"
     }
