@@ -412,7 +412,8 @@ def run_commit() -> None:
     save_state(state)
     GUIDE_PATH.write_text(render_guide(state, today), encoding="utf-8")
     EVICTED_PATH.write_text(render_evicted(state), encoding="utf-8")
-    shutil.rmtree(WORK_DIR)
+    # Windows 는 다른 프로세스가 폴더를 잠깐 잡고 있으면 지우기를 거부한다. 남은 폴더는 다음 collect 가 지운다
+    shutil.rmtree(WORK_DIR, ignore_errors=True)
 
     print(f"분석 세션 {len(manifest['sessions'])}개 반영, 이번 회차 패턴: {this_run}")
     print(f"가이드 {len(state['guide'])}개: {[(i, state['counts'][i]) for i in state['guide']]}")
